@@ -95,7 +95,7 @@ jobs:
           WIZ_CLIENT_SECRET: ${{ secrets.WIZ_CLIENT_SECRET }}
 
       - name: Run wiz-cli docker image scan
-        run: ./wizcli docker scan --image $TAG:${{ github.sha }} ––dockerfile ${{ env.DOCKER_FILE }}  --policy "$POLICY"
+        run: ./wizcli docker scan --image $TAG:${{ github.sha }} ––dockerfile "${{ env.DOCKER_FILE }}"  --policy "$POLICY"
       
       - name: Push docker image
         run: docker push $TAG:${{ github.sha }}
