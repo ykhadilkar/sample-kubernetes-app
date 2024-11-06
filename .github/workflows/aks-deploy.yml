@@ -1,5 +1,5 @@
 # This workflow will build and push an application to a Azure Kubernetes Service (AKS) cluster when you push your code
-##
+#
 # This workflow assumes you have already created the target AKS cluster and have created an Azure Container Registry (ACR)
 # The ACR should be attached to the AKS cluster
 # For instructions see:
@@ -83,7 +83,7 @@ jobs:
       #    az acr build --image ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.CONTAINER_NAME }}:${{ github.sha }} --registry ${{ env.AZURE_CONTAINER_REGISTRY }} -g ${{ env.ACR_RESOURCE_GROUP }} -f ${{ env.DOCKER_FILE }} ${{ env.BUILD_CONTEXT_PATH }}
       
       - name: Build the Docker image
-        run: cd $SCAN_PATH && docker build . --tag $TAG # Configure to fit the params you use to build your image
+        run: cd $SCAN_PATH && docker build . --tag $TAG:${{ github.sha }} # Configure to fit the params you use to build your image
       
       - name: Download Wiz CLI
         run: curl -o wizcli https://downloads.wiz.io/wizcli/latest/wizcli-linux-amd64 && chmod +x wizcli
@@ -95,10 +95,24 @@ jobs:
           WIZ_CLIENT_SECRET: ${{ secrets.WIZ_CLIENT_SECRET }}
 
       - name: Run wiz-cli docker image scan
-        run: ./wizcli docker scan --image $TAG --dockerfile $DOCKER_FILE --policy "$POLICY"
+        id: scan
+        run: |-
+          sudo -E ./wizcli docker scan -i $TAG:${{ github.sha }} --policy-hits-only --driver mountWithLayers \
+          --dockerfile "./Dockerfile" --output wiz-output.json,sarif,true --tag github_action_run_id=${{ github.run_id }} \
+          --sbom-format spdx-json --sbom-output-file sbom.json
+        continue-on-error: true
       
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: wiz-output.json
+          category: wiz
+
       - name: Push docker image
-        run: docker push $TAG
+        run: docker push $TAG:${{ github.sha }}
+      
+      - name: Run Wiz CLI image tag
+        run: sudo -E ./wizcli docker tag -i $TAG:${{ github.sha }}
 
   deploy:
     permissions:
@@ -148,7 +162,7 @@ jobs:
           action: deploy
           manifests: ${{ env.DEPLOYMENT_MANIFEST_PATH }}
           images: |
-            ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.CONTAINER_NAME }}
+            ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.CONTAINER_NAME }}:${{ github.sha }}
           resource-group: ${{ env.CLUSTER_RESOURCE_GROUP }}
           name: ${{ env.CLUSTER_NAME }}
           private-cluster: ${{ steps.isPrivate.outputs.PRIVATE_CLUSTER == 'true' }}
