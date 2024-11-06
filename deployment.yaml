@@ -33,11 +33,10 @@ metadata:
 spec:
   ports:
   - name: 8080-8080
-    port: 8080
+    port: 80
     protocol: TCP
     targetPort: 8080
   selector:
     app: demo
-  type: ClusterIP
-status:
-  loadBalancer: {}
+  type: LoadBalancer
+
