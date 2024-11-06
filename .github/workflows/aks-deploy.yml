@@ -48,6 +48,9 @@ env:
   DOCKER_FILE: ./Dockerfile
   BUILD_CONTEXT_PATH: ./
   NAMESPACE: namespace-workflow-1730847245762
+  SCAN_PATH: "." # Set the relative path in the repo to build the image from
+  TAG: ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.CONTAINER_NAME }}:${{ github.sha }} # Set the tag to use for the image
+  POLICY: "Default vulnerabilities policy" # Set the desired Wiz CLI policy to use
 
 jobs:
   buildImage:
@@ -67,10 +70,36 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
+      - name: Login to ACR
+        uses: docker/login-action@v3
+        with:
+          registry: yatin.azurecr.io
+          username: ${{ vars.REGISTRY_UN }}
+          password: ${{ secrets.REGISTRY_PW }}
+          
       # Builds and pushes an image up to your Azure Container Registry
-      - name: Build and push image to ACR
-        run: |
-          az acr build --image ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.CONTAINER_NAME }}:${{ github.sha }} --registry ${{ env.AZURE_CONTAINER_REGISTRY }} -g ${{ env.ACR_RESOURCE_GROUP }} -f ${{ env.DOCKER_FILE }} ${{ env.BUILD_CONTEXT_PATH }}
+      #- name: Build and push image to ACR
+      #  run: |
+      #    az acr build --image ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.CONTAINER_NAME }}:${{ github.sha }} --registry ${{ env.AZURE_CONTAINER_REGISTRY }} -g ${{ env.ACR_RESOURCE_GROUP }} -f ${{ env.DOCKER_FILE }} ${{ env.BUILD_CONTEXT_PATH }}
+      
+      - name: Build the Docker image
+        run: cd $SCAN_PATH && docker build . --tag $TAG # Configure to fit the params you use to build your image
+      
+      - name: Download Wiz CLI
+        run: curl -o wizcli https://downloads.wiz.io/wizcli/latest/wizcli-linux-amd64 && chmod +x wizcli
+  
+      - name: Authenticate to Wiz
+        run: ./wizcli auth --id "$WIZ_CLIENT_ID" --secret "$WIZ_CLIENT_SECRET"
+        env:
+          WIZ_CLIENT_ID: ${{ secrets.WIZ_CLIENT_ID }}
+          WIZ_CLIENT_SECRET: ${{ secrets.WIZ_CLIENT_SECRET }}
+
+      - name: Run wiz-cli docker image scan
+        run: ./wizcli docker scan --image $TAG --policy "$POLICY"
+      
+      - name: Push docker image
+        run: docker push --image $TAG
+
   deploy:
     permissions:
       actions: read
