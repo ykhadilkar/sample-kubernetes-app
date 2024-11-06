@@ -49,7 +49,7 @@ env:
   BUILD_CONTEXT_PATH: ./
   NAMESPACE: namespace-workflow-1730847245762
   SCAN_PATH: "." # Set the relative path in the repo to build the image from
-  TAG: ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.CONTAINER_NAME }}:${{ github.sha }} # Set the tag to use for the image
+  TAG: yatin.azurecr.io/samples/wiz-sample-app # Set the tag to use for the image
   POLICY: "Default vulnerabilities policy" # Set the desired Wiz CLI policy to use
 
 jobs:
@@ -76,14 +76,14 @@ jobs:
           registry: yatin.azurecr.io
           username: ${{ vars.REGISTRY_UN }}
           password: ${{ secrets.REGISTRY_PW }}
-          
+
       # Builds and pushes an image up to your Azure Container Registry
       #- name: Build and push image to ACR
       #  run: |
       #    az acr build --image ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.CONTAINER_NAME }}:${{ github.sha }} --registry ${{ env.AZURE_CONTAINER_REGISTRY }} -g ${{ env.ACR_RESOURCE_GROUP }} -f ${{ env.DOCKER_FILE }} ${{ env.BUILD_CONTEXT_PATH }}
       
       - name: Build the Docker image
-        run: cd $SCAN_PATH && docker build . --tag $TAG # Configure to fit the params you use to build your image
+        run: cd $SCAN_PATH && docker build . --tag $TAG:${{ github.sha }} # Configure to fit the params you use to build your image
       
       - name: Download Wiz CLI
         run: curl -o wizcli https://downloads.wiz.io/wizcli/latest/wizcli-linux-amd64 && chmod +x wizcli
@@ -95,10 +95,10 @@ jobs:
           WIZ_CLIENT_SECRET: ${{ secrets.WIZ_CLIENT_SECRET }}
 
       - name: Run wiz-cli docker image scan
-        run: ./wizcli docker scan --image $TAG --policy "$POLICY"
+        run: ./wizcli docker scan --image $TAG:${{ github.sha }} --policy "$POLICY"
       
       - name: Push docker image
-        run: docker push --image $TAG
+        run: docker push --image $TAG:${{ github.sha }}
 
   deploy:
     permissions:
