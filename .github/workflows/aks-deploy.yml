@@ -101,12 +101,6 @@ jobs:
           --dockerfile "./Dockerfile" --output wiz-output.json,sarif,true --tag github_action_run_id=${{ github.run_id }} \
           --sbom-format spdx-json --sbom-output-file sbom.json
         continue-on-error: true
-      
-      - name: Upload SARIF file
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: wiz-output.json
-          category: wiz
 
       - name: Push docker image
         run: docker push $TAG:${{ github.sha }}
