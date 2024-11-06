@@ -98,7 +98,7 @@ jobs:
         run: ./wizcli docker scan --image $TAG:${{ github.sha }} --policy "$POLICY"
       
       - name: Push docker image
-        run: docker push --image $TAG:${{ github.sha }}
+        run: docker push $TAG:${{ github.sha }}
 
   deploy:
     permissions:
