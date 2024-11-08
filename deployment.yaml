@@ -23,6 +23,7 @@ spec:
         resources: {}
 status: {}
 ---
+
 apiVersion: v1
 kind: Service
 metadata:
@@ -33,10 +34,11 @@ metadata:
 spec:
   ports:
   - name: 8080-8080
-    port: 80
+    port: 8080
     protocol: TCP
     targetPort: 8080
   selector:
     app: demo
-  type: LoadBalancer
-
+  type: ClusterIP
+status:
+  loadBalancer: {}
