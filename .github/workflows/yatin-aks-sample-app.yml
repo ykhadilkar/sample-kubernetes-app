@@ -49,6 +49,9 @@ env:
   DOCKER_FILE: ./Dockerfile
   BUILD_CONTEXT_PATH: ./
   NAMESPACE: namespace-workflow-1733250030146
+  SCAN_PATH: "." # Set the relative path in the repo to build the image from
+  #TAG: yatin.azurecr.io/samples/wiz-sample-app # Set the tag to use for the image
+  POLICY: "Default vulnerabilities policy" # Set the desired Wiz CLI policy to use
 
 jobs:
   buildImage:
@@ -69,9 +72,36 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       # Builds and pushes an image up to your Azure Container Registry
-      - name: Build and push image to ACR
-        run: |
-          az acr build --image ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.CONTAINER_NAME }}:${{ github.sha }} --registry ${{ env.AZURE_CONTAINER_REGISTRY }} -g ${{ env.ACR_RESOURCE_GROUP }} -f ${{ env.DOCKER_FILE }} ${{ env.BUILD_CONTEXT_PATH }}
+      # - name: Build and push image to ACR
+      #  run: |
+      #    az acr build --image ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.CONTAINER_NAME }}:${{ github.sha }} --registry ${{ env.AZURE_CONTAINER_REGISTRY }} -g ${{ env.ACR_RESOURCE_GROUP }} -f ${{ env.DOCKER_FILE }} ${{ env.BUILD_CONTEXT_PATH }}
+      
+      - name: Build the Docker image
+        run: cd $SCAN_PATH && docker build . --tag $TAG:${{ github.sha }} # Configure to fit the params you use to build your image
+      
+      - name: Download Wiz CLI
+        run: curl -o wizcli https://downloads.wiz.io/wizcli/latest/wizcli-linux-amd64 && chmod +x wizcli
+  
+      - name: Authenticate to Wiz
+        run: ./wizcli auth --id "$WIZ_4_GOV_CLIENT_ID" --secret "$WIZ_4_GOV_CLIENT_SECRET"
+        env:
+          WIZ_4_GOV_CLIENT_ID: ${{ secrets.WIZ_4_GOV_CLIENT_ID }}
+          WIZ_4_GOV_CLIENT_SECRET: ${{ secrets.WIZ_4_GOV_CLIENT_SECRET }}
+
+      - name: Run wiz-cli docker image scan
+        id: scan
+        run: |-
+          sudo -E ./wizcli docker scan -i $TAG:${{ github.sha }} --policy-hits-only --driver mountWithLayers \
+          --dockerfile "./Dockerfile" --output wiz-output.json,sarif,true --tag github_action_run_id=${{ github.run_id }} \
+          --sbom-format spdx-json --sbom-output-file sbom.json
+        continue-on-error: true
+
+      - name: Push docker image
+        run: docker push ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.CONTAINER_NAME }}:${{ github.sha }}
+      
+      - name: Run Wiz CLI image tag
+        run: sudo -E ./wizcli docker tag -i ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.CONTAINER_NAME }}:${{ github.sha }}
+
   deploy:
     permissions:
       actions: read
