@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: yatin-aks-sample-app
+  labels:
+    app: yatin-aks-sample-app
+    kubernetes.azure.com/generator: devhub
+  namespace: namespace-workflow-1733250030146
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: yatin-aks-sample-app
+  template:
+    metadata:
+      labels:
+        app: yatin-aks-sample-app
+    spec:
+      containers:
+        - name: yatin-aks-sample-app
+          image: yatinaksregistry.azurecr.io/image-workflow-1733250030146:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
