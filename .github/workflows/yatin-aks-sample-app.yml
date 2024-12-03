@@ -110,6 +110,10 @@ jobs:
       
       - name: Run Wiz CLI image tag
         run: sudo -E ./wizcli docker tag -i ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.CONTAINER_NAME }}:${{ github.sha }}
+        env:
+          WIZ_4_GOV_CLIENT_ID: ${{ secrets.WIZ_4_GOV_CLIENT_ID }}
+          WIZ_4_GOV_CLIENT_SECRET: ${{ secrets.WIZ_4_GOV_CLIENT_SECRET }}
+          WIZ_ENV: fedramp
 
   deploy:
     permissions:
