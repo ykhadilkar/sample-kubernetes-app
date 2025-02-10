@@ -61,8 +61,21 @@ jobs:
       id-token: write
     runs-on: ubuntu-latest
     steps:
-      # Checks out the repository this file is in
-      - uses: actions/checkout@v3
+      - name: Checkout source code 
+        uses: actions/checkout@v3
+        
+      - name: ACR build
+        id: build-push-acr
+        uses: azure/acr-build@v1
+        with:
+          service_principal: ${{ secrets.service_principal }}
+          service_principal_password: ${{ secrets.service_principal_password }}
+          tenant: ${{ secrets.tenant }}
+          registry: ${{ secrets.registry }}
+          repository: ${{ secrets.repository }}
+          image:  sample-kubernetes-app
+          branch: main
+          tag: ${{ github.sha }}
 
       # Logs in with your Azure credentials
       - name: Azure login
@@ -75,18 +88,13 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.us
-          username: ${{ secrets.REGISTRY_UN }}
-          password: ${{ secrets.REGISTRY_PW }}
+          username: ${{ secrets.SERVICE_PRINCIPAL }}
+          password: ${{ secrets.SERVICE_PRINCIPAL_PASSWORD }}
           environment: AzureUSGovernment
 
-
-      # Builds and pushes an image up to your Azure Container Registry
-      # - name: Build and push image to ACR
-      #  run: |
-      #    az acr build --image ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.CONTAINER_NAME }}:${{ github.sha }} --registry ${{ env.AZURE_CONTAINER_REGISTRY }} -g ${{ env.ACR_RESOURCE_GROUP }} -f ${{ env.DOCKER_FILE }} ${{ env.BUILD_CONTEXT_PATH }}
-      
+     
       - name: Build the Docker image
-        run: cd $SCAN_PATH && docker build . --tag ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.CONTAINER_NAME }}:${{ github.sha }} # Configure to fit the params you use to build your image
+        run: cd $SCAN_PATH && docker build . --tag ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.us/${{ env.CONTAINER_NAME }}:${{ github.sha }} # Configure to fit the params you use to build your image
       
       - name: Download Wiz CLI
         run: curl -o wizcli https://downloads.wiz.io/wizcli/latest/wizcli-linux-amd64 && chmod +x wizcli
