@@ -134,10 +134,10 @@ jobs:
           environment: ${{ env.environment }}
 
       # Use kubelogin to configure your kubeconfig for Azure auth
-      - name: Set up kubelogin for non-interactive login
-        uses: azure/use-kubelogin@v1
-        with:
-          kubelogin-version: 'v0.0.25'
+      # - name: Set up kubelogin for non-interactive login
+      #   uses: azure/use-kubelogin@v1
+      #   with:
+      #     kubelogin-version: 'v0.0.25'
 
       # Retrieves your Azure Kubernetes Service cluster's kubeconfig file
       - name: Get K8s context
@@ -145,8 +145,6 @@ jobs:
         with:
           resource-group: ${{ env.CLUSTER_RESOURCE_GROUP }}
           cluster-name: ${{ env.CLUSTER_NAME }}
-          admin: 'false'
-          use-kubelogin: 'true'
 
       # Checks if the AKS cluster is private
       - name: Is private cluster
