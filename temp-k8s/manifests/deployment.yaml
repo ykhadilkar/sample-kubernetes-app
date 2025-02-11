@@ -1,23 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: yatin-aks-sample-app
+  name: yatin-aks-gov-sample-app
   labels:
-    app: yatin-aks-sample-app
-    kubernetes.azure.com/generator: devhub
+    app: yatin-aks-gov-sample-app
   namespace: yatin
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: yatin-aks-sample-app
+      app: yatin-aks-gov-sample-app
   template:
     metadata:
       labels:
-        app: yatin-aks-sample-app
+        app: yatin-aks-gov-sample-app
     spec:
       containers:
-        - name: yatin-aks-sample-app
+        - name: yatin-aks-gov-sample-app
           image: yatin.azurecr.us/sample-kubernetes-app:latest
           imagePullPolicy: Always
           ports:
