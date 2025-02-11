@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: yatin-aks-sample-app
-  namespace: namespace-workflow-1733250030146
+  namespace: yatin
   labels:
     kubernetes.azure.com/generator: devhub
 spec:
