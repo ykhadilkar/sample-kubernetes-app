@@ -160,7 +160,9 @@ jobs:
         uses: Azure/k8s-deploy@v4
         with:
           action: deploy
-          manifests: ${{ env.DEPLOYMENT_MANIFEST_PATH }}
+          manifests: |
+            temp-k8s/manifests/deployment.yaml
+            temp-k8s/manifests/service.yaml  
           images: |
             ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.us/${{ env.CONTAINER_NAME }}:${{ github.sha }}
           resource-group: ${{ env.CLUSTER_RESOURCE_GROUP }}
