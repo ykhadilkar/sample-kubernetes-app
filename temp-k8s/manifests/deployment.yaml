@@ -4,7 +4,6 @@ metadata:
   name: yatin-aks-gov-sample-app
   labels:
     app: yatin-aks-gov-sample-app
-  namespace: yatin
 spec:
   replicas: 1
   selector:
