@@ -133,11 +133,11 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
           environment: ${{ env.environment }}
 
-      # Use kubelogin to configure your kubeconfig for Azure auth
-      # - name: Set up kubelogin for non-interactive login
-      #   uses: azure/use-kubelogin@v1
-      #   with:
-      #     kubelogin-version: 'v0.0.25'
+      #Use kubelogin to configure your kubeconfig for Azure auth
+      - name: Set up kubelogin for non-interactive login
+        uses: azure/use-kubelogin@v1
+        with:
+          kubelogin-version: 'v0.0.25'
 
       # Retrieves your Azure Kubernetes Service cluster's kubeconfig file
       - name: Get K8s context
@@ -145,8 +145,9 @@ jobs:
         with:
           resource-group: ${{ env.CLUSTER_RESOURCE_GROUP }}
           cluster-name: ${{ env.CLUSTER_NAME }}
-          # admin: 'true'
-      
+          admin: 'true'
+          use-kubelogin: 'true'
+          
       - name: Setup kubectl
         id: install-kubectl
         uses: azure/setup-kubectl@v3
