@@ -97,15 +97,15 @@ jobs:
           WIZ_4_GOV_CLIENT_SECRET: ${{ secrets.WIZ_4_GOV_CLIENT_SECRET }}
           WIZ_ENV: fedramp
 
-      # - name: Run wiz-cli docker image scan
-      #   id: scan
-      #   run: |-
-      #     sudo -E ./wizcli docker scan -i ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.us/${{ env.CONTAINER_NAME }}:${{ github.sha }} --policy-hits-only --driver mountWithLayers \
-      #     --dockerfile "./Dockerfile" --output wiz-output.json,sarif,true --tag github_action_run_id=${{ github.run_id }} \
-      #     --sbom-format spdx-json --sbom-output-file sbom.json
-      #   env:
-      #     WIZ_ENV: fedramp
-      #   continue-on-error: true
+      - name: Run wiz-cli docker image scan
+        id: scan
+        run: |-
+          sudo -E ./wizcli docker scan -i ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.us/${{ env.CONTAINER_NAME }}:${{ github.sha }} --policy-hits-only --driver mountWithLayers \
+          --dockerfile "./Dockerfile" --output wiz-output.json,sarif,true --tag github_action_run_id=${{ github.run_id }} \
+          --sbom-format spdx-json --sbom-output-file sbom.json
+        env:
+          WIZ_ENV: fedramp
+        continue-on-error: true
 
       - name: Push docker image
         run: docker push ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.us/${{ env.CONTAINER_NAME }}:${{ github.sha }}
