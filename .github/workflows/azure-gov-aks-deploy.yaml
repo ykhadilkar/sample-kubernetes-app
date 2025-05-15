@@ -110,10 +110,10 @@ jobs:
       - name: Push docker image
         run: docker push ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.us/${{ env.CONTAINER_NAME }}:${{ github.sha }}
       
-      - name: Run Wiz CLI image tag
-        run: sudo -E ./wizcli docker tag -i ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.us/${{ env.CONTAINER_NAME }}:${{ github.sha }}
-        env:
-          WIZ_ENV: fedramp
+      # - name: Run Wiz CLI image tag
+      #   run: sudo -E ./wizcli docker tag -i ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.us/${{ env.CONTAINER_NAME }}:${{ github.sha }}
+      #   env:
+      #     WIZ_ENV: fedramp
 
   deploy:
     permissions:
